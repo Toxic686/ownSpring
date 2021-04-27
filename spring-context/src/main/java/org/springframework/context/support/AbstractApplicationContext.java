@@ -515,28 +515,54 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
 			// Prepare this context for refreshing.
+			/*
+			刷新前的预处理
+			表示在真正做refresh操作之前需要准备做的事情
+				设置Spring容器的启动时间
+				开启活跃状态，撤销关闭状态
+				验证环境信息中一些必须存在的属性等
+			 */
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			/*
+			获取BeanFactory：默认实现是DefaultListableBeanFactory
+			加载BeanDefinition，并注册到BeanDefinitionRegistry
+			 */
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+			/*
+			BeanFactory的预准备工作（BeanFactory的设置，比如context的类加载器等）
+			 */
 			prepareBeanFactory(beanFactory);
 
 			try {
 				// Allows post-processing of the bean factory in context subclasses.
+				/*
+				BeanFactory准备工作完成后的后置处理工作
+				 */
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
+				/*
+				实例化实现了BeanFactoryPostProcessor接口的Bean，并调用接口方法
+				 */
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
+				/*
+				注册BeanPostProcessor（Bean的后置处理器），在创建Bean的前后执行
+				 */
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
 				initMessageSource();
 
 				// Initialize event multicaster for this context.
+				/*
+				初始化事件派发器
+				 */
 				initApplicationEventMulticaster();
 
 				// Initialize other special beans in specific context subclasses.
@@ -546,6 +572,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
+				/*
+				初始化所有剩下的非懒加载的单例bean
+				初始化创建非懒加载方式的单例bean实例（未设置属性）
+				填充属性
+				初始化方法调用（比如调用afterPropertiesSet方法，init-method方法）
+				调用BeanPostProcessor（后置处理器）对实例bean进行后置处理
+				 */
 				finishBeanFactoryInitialization(beanFactory);
 
 				// Last step: publish corresponding event.
@@ -582,6 +615,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareRefresh() {
 		// Switch to active.
+		// 设置启动日期和活动标志
 		this.startupDate = System.currentTimeMillis();
 		this.closed.set(false);
 		this.active.set(true);
